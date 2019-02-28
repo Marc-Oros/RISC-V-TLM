@@ -96,7 +96,7 @@ Just change SYSTEMC path in Makefile.
 $ make
 ```
 
-Then, you need to modifiy your LD_LIBRARY_PATH environtment variable to add
+Then, you need to modifiy your LD_LIBRARY_PATH environment variable to add
 path systemc library. In my case:
 ```
 $ export LD_LIBRARY_PATH=/home/marius/Work/RiscV/code/systemc-2.3.2/lib-linux64

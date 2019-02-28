@@ -1,11 +1,11 @@
 TARGET   = RISCV_TLM
 
-SYSTEMC ?=../systemc-2.3.2
+SYSTEMC ?= /home/marc/bin/systemc-2.3.2
 TARGET_ARCH=linux64
 
 CC       = g++
 # compiling flags here
-CFLAGS   = -Wall -I. -O3 -std=c++11
+CFLAGS   = -Wall -I. -O3
 
 LINKER   = g++
 # linking flags here
