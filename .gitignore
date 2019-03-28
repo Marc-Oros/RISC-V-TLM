@@ -38,3 +38,6 @@ helper.ods
 *.swp
 RISCV_TLM
 dump
+
+#VSCode directory
+.vscode/
