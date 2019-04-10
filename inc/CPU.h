@@ -22,13 +22,14 @@
 #include "C_Instruction.h"
 #include "M_Instruction.h"
 #include "A_Instruction.h"
+#include "Fetch.h"
 
 using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
 
 /**
- * @brief ISC_V CPU model
+ * @brief RISC_V CPU model
  * @param name name of the module
  */
 class CPU: sc_module {
@@ -39,7 +40,7 @@ public:
    * @param trans transction to perfoem
    * @param delay time to annotate
    */
-  tlm_utils::simple_initiator_socket<CPU> instr_bus;
+  //  tlm_utils::simple_initiator_socket<CPU> instr_bus;
 
   /**
    * @brief IRQ line socket
@@ -61,6 +62,8 @@ public:
   ~CPU();
 
   Execute *exec;
+
+  Fetch *fetch;
 
 private:
   Registers *register_bank;

@@ -2,12 +2,13 @@
 
 SC_HAS_PROCESS(CPU);
 CPU::CPU(sc_module_name name, uint32_t PC): sc_module(name)
-, instr_bus("instr_bus")
+//, instr_bus("instr_bus")
 {
    register_bank = new Registers();
    exec = new Execute("Execute", register_bank);
    perf = Performance::getInstance();
    log = Log::getInstance();
+   fetch = new Fetch("Fetch");
 
    register_bank->setPC(PC);
 
@@ -449,37 +450,45 @@ bool CPU::process_base_instruction(Instruction &inst) {
  */
 void CPU::CPU_thread(void) {
 
-  tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
+  /*tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
   uint32_t INSTR;
-  sc_time delay = SC_ZERO_TIME;
+  sc_time delay = SC_ZERO_TIME;*/
   bool PC_not_affected = false;
   bool incPCby2 = false;
 
-  trans->set_command( tlm::TLM_READ_COMMAND );
+  /*trans->set_command( tlm::TLM_READ_COMMAND );
   trans->set_data_ptr( reinterpret_cast<unsigned char*>(&INSTR) );
   trans->set_data_length( 4 );
   trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
   trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
   trans->set_dmi_allowed( false ); // Mandatory initial value
-  trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
+  trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );*/
 
   //register_bank->dump();
 
   while(1) {
       /* Get new PC value */
       //cout << "CPU: PC 0x" << hex << (uint32_t) register_bank->getPC() << endl;
-      trans->set_address( register_bank->getPC() );
-      instr_bus->b_transport( *trans, delay);
+
+      /*trans->set_address( register_bank->getPC() );
+      instr_bus->b_transport( *trans, delay);*/
 
       perf->codeMemoryRead();
 
-      if ( trans->is_response_error() ) {
+      /*if ( trans->is_response_error() ) {
+        SC_REPORT_ERROR("CPU base", "Read memory");
+      } else {
+        log->SC_log(Log::INFO) << "PC: 0x" << hex
+              << register_bank->getPC() << ". ";*/
+      if ( fetch->run(register_bank) ) {
         SC_REPORT_ERROR("CPU base", "Read memory");
       } else {
         log->SC_log(Log::INFO) << "PC: 0x" << hex
               << register_bank->getPC() << ". ";
 
-        Instruction inst(INSTR);
+        Instruction inst(fetch->getInstr());
+
+        //Instruction inst(INSTR);
 
         /* check what type of instruction is and execute it */
         switch(inst.check_extension()) {

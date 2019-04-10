@@ -20,6 +20,7 @@
 #include "BusCtrl.h"
 #include "Trace.h"
 #include "Timer.h"
+#include "Fetch.h"
 
 using namespace sc_core;
 using namespace sc_dt;
@@ -58,7 +59,11 @@ SC_MODULE(Simulator)
     trace = new Trace("Trace");
     timer = new Timer("Timer");
 
-    cpu->instr_bus.bind(Bus->cpu_instr_socket);
+    cpu->fetch->instr_bus.bind(Bus->cpu_instr_socket);
+
+    //cpu->instr_bus.bind(Bus->cpu_instr_socket);
+
+
     cpu->exec->data_bus.bind(Bus->cpu_data_socket);
 
     Bus->memory_socket.bind(MainMemory->socket);
