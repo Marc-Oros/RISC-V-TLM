@@ -10,7 +10,423 @@ Execute::Execute(sc_module_name name
     log = Log::getInstance();
 }
 
-bool Execute::LUI(Instruction &inst) {
+void Execute::NOP_toggle()
+{
+  stage_NOP = (stage_NOP+1) % 2;
+}
+
+void Execute::setInstr(Instruction p_inst)
+{
+  inst = p_inst;
+}
+void Execute::setExt(extension_t p_extension)
+{
+  extension = p_extension;
+}
+void Execute::set_base_d(opCodes p_base_inst_d)
+{
+  base_inst_d = p_base_inst_d;
+}
+void Execute::set_c_d(op_C_Codes p_c_inst_d)
+{
+  c_inst_d = p_c_inst_d;
+}
+void Execute::set_m_d(op_M_Codes p_m_inst_d)
+{
+  m_inst_d = p_m_inst_d;
+}
+void Execute::set_a_d(op_A_Codes p_a_inst_d)
+{
+  a_inst_d = p_a_inst_d;
+}
+
+bool Execute::run()
+{
+  bool PC_not_affected = true;
+  if(stage_NOP)
+  {
+    //Hi ha hagut un salt, no cal executar
+    NOP_toggle();
+  }else{
+    switch(extension) {
+      case BASE_EXTENSION:
+        PC_not_affected = process_base_instruction();
+        break;
+      case C_EXTENSION:
+        PC_not_affected = process_c_instruction();
+        break;
+      case M_EXTENSION:
+        PC_not_affected = process_m_instruction();
+        break;
+      case A_EXTENSION:
+        PC_not_affected = process_a_instruction();
+        break;
+      default:
+        std::cout << "Extension not implemented yet" << std::endl;
+        inst.dump();
+        NOP();
+      }
+  }
+  return PC_not_affected;
+}
+
+bool Execute::process_c_instruction() {
+  bool PC_not_affected = true;
+
+  switch(c_inst_d) {
+    case OP_C_ADDI4SPN:
+      PC_not_affected = C_ADDI4SPN();
+      break;
+    case OP_C_LW:
+      LW(true);
+      break;
+    case OP_C_SW:
+      SW(true);
+      break;
+    case OP_C_ADDI:
+      ADDI(true);
+      break;
+    case OP_C_JAL:
+      JAL(true, 1);
+      PC_not_affected = false;
+      break;
+    case OP_C_J:
+      JAL(true, 0);
+      PC_not_affected = false;
+      break;
+    case OP_C_LI:
+      C_LI();
+      break;
+    case OP_C_SLLI:
+      C_SLLI();
+      break;
+    case OP_C_LWSP:
+      C_LWSP();
+      break;
+    case OP_C_JR:
+      C_JR();
+      PC_not_affected = false;
+      break;
+    case OP_C_MV:
+      C_MV();
+      break;
+    case OP_C_JALR:
+      JALR(true);
+      PC_not_affected = false;
+      break;
+    case OP_C_ADD:
+      C_ADD();
+      break;
+    case OP_C_SWSP:
+      C_SWSP();
+      break;
+    case OP_C_ADDI16SP:
+      C_ADDI16SP();
+      break;
+    case OP_C_BEQZ:
+      C_BEQZ();
+      PC_not_affected = false;
+      break;
+    case OP_C_BNEZ:
+      C_BNEZ();
+      PC_not_affected = false;
+      break;
+    case OP_C_SRLI:
+      C_SRLI();
+      break;
+    case OP_C_SRAI:
+      C_SRAI();
+      break;
+    case OP_C_ANDI:
+      C_ANDI();
+      break;
+    case OP_C_SUB:
+      C_SUB();
+      break;
+    case OP_C_XOR:
+      C_XOR();
+      break;
+    case OP_C_OR:
+      C_OR();
+      break;
+    case OP_C_AND:
+      C_AND();
+      break;
+    default:
+      std::cout << "C instruction not implemented yet" << endl;
+      inst.dump();
+      NOP();
+      //sc_stop();
+      break;
+
+  }
+
+  return PC_not_affected;
+}
+
+bool Execute::process_m_instruction() {
+  bool PC_not_affected = true;
+
+  switch(m_inst_d) {
+    case OP_M_MUL:
+      M_MUL();
+      break;
+    case OP_M_MULH:
+      M_MULH();
+      break;
+    case OP_M_MULHSU:
+      M_MULHSU();
+      break;
+    case OP_M_MULHU:
+      M_MULHU();
+      break;
+    case OP_M_DIV:
+      M_DIV();
+      break;
+    case OP_M_DIVU:
+      M_DIVU();
+      break;
+    case OP_M_REM:
+      M_REM();
+      break;
+    case OP_M_REMU:
+      M_REMU();
+      break;
+    default:
+      std::cout << "M instruction not implemented yet" << endl;
+      inst.dump();
+      NOP();
+      break;
+  }
+
+  return PC_not_affected;
+}
+
+
+bool Execute::process_a_instruction() {
+  bool PC_not_affected = true;
+
+  switch(a_inst_d) {
+    case OP_A_LR:
+      A_LR();
+      break;
+    case OP_A_SC:
+      A_SC();
+      break;
+    case OP_A_AMOSWAP:
+      A_AMOSWAP();
+      break;
+    case OP_A_AMOADD:
+      A_AMOADD();
+      break;
+    case OP_A_AMOXOR:
+      A_AMOXOR();
+      break;
+    case OP_A_AMOAND:
+      A_AMOAND();
+      break;
+    case OP_A_AMOOR:
+      A_AMOOR();
+      break;
+    case OP_A_AMOMIN:
+      A_AMOMIN();
+      break;
+    case OP_A_AMOMAX:
+      A_AMOMAX();
+      break;
+    case OP_A_AMOMINU:
+      A_AMOMINU();
+      break;
+    case OP_A_AMOMAXU:
+      A_AMOMAXU();
+      break;
+    default:
+      std::cout << "A instruction not implemented yet" << endl;
+      inst.dump();
+      NOP();
+      break;
+  }
+
+  return PC_not_affected;
+}
+
+bool Execute::process_base_instruction() {
+  bool PC_not_affected = true;
+
+  switch(base_inst_d) {
+    case OP_LUI:
+      LUI();
+      break;
+    case OP_AUIPC:
+      AUIPC();
+      break;
+    case OP_JAL:
+      JAL();
+      PC_not_affected = false;
+      break;
+    case OP_JALR:
+      JALR();
+      PC_not_affected = false;
+      break;
+    case OP_BEQ:
+      BEQ();
+      PC_not_affected = false;
+      break;
+    case OP_BNE:
+      BNE();
+      PC_not_affected = false;
+      break;
+    case OP_BLT:
+      BLT();
+      PC_not_affected = false;
+      break;
+    case OP_BGE:
+      BGE();
+      PC_not_affected = false;
+      break;
+    case OP_BLTU:
+      BLTU();
+      PC_not_affected = false;
+      break;
+    case OP_BGEU:
+      BGEU();
+      PC_not_affected = false;
+      break;
+    case OP_LB:
+      LB();
+      break;
+    case OP_LH:
+      LH();
+      break;
+    case OP_LW:
+      LW();
+      break;
+    case OP_LBU:
+      LBU();
+      break;
+    case OP_LHU:
+      LHU();
+      break;
+    case OP_SB:
+      SB();
+      break;
+    case OP_SH:
+      SH();
+      break;
+    case OP_SW:
+      SW();
+      break;
+    case OP_ADDI:
+      ADDI();
+      break;
+    case OP_SLTI:
+      SLTI();
+      break;
+    case OP_SLTIU:
+      SLTIU();
+      break;
+    case OP_XORI:
+      XORI();
+      break;
+    case OP_ORI:
+      ORI();
+      break;
+    case OP_ANDI:
+      ANDI();
+      break;
+    case OP_SLLI:
+      PC_not_affected = SLLI();
+      break;
+    case OP_SRLI:
+      SRLI();
+      break;
+    case OP_SRAI:
+      SRAI();
+      break;
+    case OP_ADD:
+      ADD();
+      break;
+    case OP_SUB:
+      SUB();
+      break;
+    case OP_SLL:
+      SLL();
+      break;
+    case OP_SLT:
+      SLT();
+      break;
+    case OP_SLTU:
+      SLTU();
+      break;
+    case OP_XOR:
+      XOR();
+      break;
+    case OP_SRL:
+      SRL();
+      break;
+    case OP_SRA:
+      SRA();
+      break;
+    case OP_OR:
+      OR();
+      break;
+    case OP_AND:
+      AND();
+      break;
+    case OP_FENCE:
+      FENCE();
+      break;
+    case OP_ECALL:
+      ECALL();
+      break;
+    case OP_EBREAK:
+      EBREAK();
+      break;
+    case OP_CSRRW:
+      CSRRW();
+      break;
+    case OP_CSRRS:
+      CSRRS();
+      break;
+    case OP_CSRRC:
+      CSRRC();
+      break;
+    case OP_CSRRWI:
+      CSRRWI();
+      break;
+    case OP_CSRRSI:
+      CSRRSI();
+      break;
+    case OP_CSRRCI:
+      CSRRCI();
+      break;
+
+    case OP_MRET:
+      MRET();
+      PC_not_affected = false;
+      break;
+    case OP_SRET:
+      SRET();
+      PC_not_affected = false;
+      break;
+    case OP_WFI:
+      WFI();
+      break;
+    case OP_SFENCE:
+      SFENCE();
+      break;
+    default:
+      std::cout << "Wrong instruction" << endl;
+      inst.dump();
+      NOP();
+      //sc_stop();
+      break;
+  }
+
+  return PC_not_affected;
+}
+
+bool Execute::LUI() {
   int rd;
   uint32_t imm = 0;
 
@@ -23,7 +439,7 @@ bool Execute::LUI(Instruction &inst) {
   return true;
 }
 
-bool Execute::AUIPC(Instruction &inst) {
+bool Execute::AUIPC() {
   int rd;
   uint32_t imm = 0;
   int new_pc;
@@ -41,7 +457,7 @@ bool Execute::AUIPC(Instruction &inst) {
   return true;
 }
 
-bool Execute::JAL(Instruction &inst, bool c_extension, int m_rd) {
+bool Execute::JAL(bool c_extension, int m_rd) {
   int32_t mem_addr = 0;
   int rd;
   int new_pc, old_pc;
@@ -78,7 +494,7 @@ bool Execute::JAL(Instruction &inst, bool c_extension, int m_rd) {
   return true;
 }
 
-bool Execute::JALR(Instruction &inst, bool c_extension) {
+bool Execute::JALR(bool c_extension) {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int new_pc, old_pc;
@@ -118,7 +534,7 @@ bool Execute::JALR(Instruction &inst, bool c_extension) {
   return true;
 }
 
-bool Execute::BEQ(Instruction &inst) {
+bool Execute::BEQ() {
   int rs1, rs2;
   int new_pc = 0;
 
@@ -141,7 +557,7 @@ bool Execute::BEQ(Instruction &inst) {
   return true;
 }
 
-bool Execute::BNE(Instruction &inst) {
+bool Execute::BNE() {
   int rs1, rs2;
   int new_pc = 0;
   uint32_t val1, val2;
@@ -154,7 +570,7 @@ bool Execute::BNE(Instruction &inst) {
 
   if (val1 != val2) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-6);
   } else {
     regs->incPC();
     new_pc = regs->getPC();
@@ -168,7 +584,7 @@ bool Execute::BNE(Instruction &inst) {
   return true;
 }
 
-bool Execute::BLT(Instruction &inst) {
+bool Execute::BLT() {
   int rs1, rs2;
   int new_pc = 0;
 
@@ -190,7 +606,7 @@ bool Execute::BLT(Instruction &inst) {
   return true;
 }
 
-bool Execute::BGE(Instruction &inst) {
+bool Execute::BGE() {
   int rs1, rs2;
   int new_pc = 0;
 
@@ -212,7 +628,7 @@ bool Execute::BGE(Instruction &inst) {
   return true;
 }
 
-bool Execute::BLTU(Instruction &inst) {
+bool Execute::BLTU() {
   int rs1, rs2;
   int new_pc = 0;
 
@@ -235,7 +651,7 @@ bool Execute::BLTU(Instruction &inst) {
   return true;
 }
 
-bool Execute::BGEU(Instruction &inst) {
+bool Execute::BGEU() {
   int rs1, rs2;
   int new_pc = 0;
 
@@ -257,7 +673,7 @@ bool Execute::BGEU(Instruction &inst) {
   return true;
 }
 
-bool Execute::LB(Instruction &inst) {
+bool Execute::LB() {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -278,7 +694,7 @@ bool Execute::LB(Instruction &inst) {
   return true;
 }
 
-bool Execute::LH(Instruction &inst) {
+bool Execute::LH() {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -299,7 +715,7 @@ bool Execute::LH(Instruction &inst) {
   return true;
 }
 
-bool Execute::LW(Instruction &inst, bool c_extension) {
+bool Execute::LW(bool c_extension) {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -329,7 +745,7 @@ bool Execute::LW(Instruction &inst, bool c_extension) {
   return true;
 }
 
-bool Execute::LBU(Instruction &inst) {
+bool Execute::LBU() {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -350,7 +766,7 @@ bool Execute::LBU(Instruction &inst) {
   return true;
 }
 
-bool Execute::LHU(Instruction &inst) {
+bool Execute::LHU() {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -372,7 +788,7 @@ bool Execute::LHU(Instruction &inst) {
   return true;
 }
 
-bool Execute::SB(Instruction &inst) {
+bool Execute::SB() {
   uint32_t mem_addr = 0;
   int rs1, rs2;
   int32_t imm = 0;
@@ -394,7 +810,7 @@ bool Execute::SB(Instruction &inst) {
   return true;
 }
 
-bool Execute::SH(Instruction &inst) {
+bool Execute::SH() {
   uint32_t mem_addr = 0;
   int rs1, rs2;
   int32_t imm = 0;
@@ -417,7 +833,7 @@ bool Execute::SH(Instruction &inst) {
   return true;
 }
 
-bool Execute::SW(Instruction &inst, bool c_extension) {
+bool Execute::SW(bool c_extension) {
   uint32_t mem_addr = 0;
   int rs1, rs2;
   int32_t imm = 0;
@@ -447,7 +863,7 @@ bool Execute::SW(Instruction &inst, bool c_extension) {
   return true;
 }
 
-bool Execute::ADDI(Instruction &inst, bool c_extension) {
+bool Execute::ADDI(bool c_extension) {
   int rd, rs1;
   int32_t imm = 0;
   int32_t calc;
@@ -474,7 +890,7 @@ bool Execute::ADDI(Instruction &inst, bool c_extension) {
   return true;
 }
 
-bool Execute::SLTI(Instruction &inst) {
+bool Execute::SLTI() {
   int rd, rs1;
   int32_t imm;
 
@@ -499,7 +915,7 @@ bool Execute::SLTI(Instruction &inst) {
   return true;
 }
 
-bool Execute::SLTIU(Instruction &inst) {
+bool Execute::SLTIU() {
   int rd, rs1;
   int32_t imm;
 
@@ -524,7 +940,7 @@ bool Execute::SLTIU(Instruction &inst) {
   return true;
 }
 
-bool Execute::XORI(Instruction &inst) {
+bool Execute::XORI() {
   int rd, rs1;
   int32_t imm;
   uint32_t calc;
@@ -544,7 +960,7 @@ bool Execute::XORI(Instruction &inst) {
   return true;
 }
 
-bool Execute::ORI(Instruction &inst) {
+bool Execute::ORI() {
   int rd, rs1;
   int32_t imm;
   uint32_t calc;
@@ -564,7 +980,7 @@ bool Execute::ORI(Instruction &inst) {
   return true;
 }
 
-bool Execute::ANDI(Instruction &inst) {
+bool Execute::ANDI() {
   int rd, rs1;
   uint32_t imm;
   uint32_t calc;
@@ -586,7 +1002,7 @@ bool Execute::ANDI(Instruction &inst) {
   return true;
 }
 
-bool Execute::SLLI(Instruction &inst) {
+bool Execute::SLLI() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -615,7 +1031,7 @@ bool Execute::SLLI(Instruction &inst) {
   return true;
 }
 
-bool Execute::SRLI(Instruction &inst) {
+bool Execute::SRLI() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -636,7 +1052,7 @@ bool Execute::SRLI(Instruction &inst) {
   return true;
 }
 
-bool Execute::SRAI(Instruction &inst) {
+bool Execute::SRAI() {
   int rd, rs1, rs2;
   uint32_t shift;
   int32_t calc;
@@ -657,7 +1073,7 @@ bool Execute::SRAI(Instruction &inst) {
   return true;
 }
 
-bool Execute::ADD(Instruction &inst) {
+bool Execute::ADD() {
   int rd, rs1, rs2;
   uint32_t calc;
   rd = inst.get_rd();
@@ -679,7 +1095,7 @@ bool Execute::ADD(Instruction &inst) {
   return true;
 }
 
-bool Execute::SUB(Instruction &inst) {
+bool Execute::SUB() {
   int rd, rs1, rs2;
   uint32_t calc;
   rd = inst.get_rd();
@@ -700,7 +1116,7 @@ bool Execute::SUB(Instruction &inst) {
   return true;
 }
 
-bool Execute::SLL(Instruction &inst) {
+bool Execute::SLL() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -721,7 +1137,7 @@ bool Execute::SLL(Instruction &inst) {
   return true;
 }
 
-bool Execute::SLT(Instruction &inst) {
+bool Execute::SLT() {
   int rd, rs1, rs2;
 
   rd = inst.get_rd();
@@ -745,7 +1161,7 @@ bool Execute::SLT(Instruction &inst) {
   return true;
 }
 
-bool Execute::SLTU(Instruction &inst) {
+bool Execute::SLTU() {
   int rd, rs1, rs2;
 
   rd = inst.get_rd();
@@ -769,7 +1185,7 @@ bool Execute::SLTU(Instruction &inst) {
   return true;
 }
 
-bool Execute::XOR(Instruction &inst) {
+bool Execute::XOR() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -788,7 +1204,7 @@ bool Execute::XOR(Instruction &inst) {
   return true;
 }
 
-bool Execute::SRL(Instruction &inst) {
+bool Execute::SRL() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -808,7 +1224,7 @@ bool Execute::SRL(Instruction &inst) {
   return true;
 }
 
-bool Execute::SRA(Instruction &inst) {
+bool Execute::SRA() {
   int rd, rs1, rs2;
   uint32_t shift;
   int32_t calc;
@@ -828,7 +1244,7 @@ bool Execute::SRA(Instruction &inst) {
   return true;
 }
 
-bool Execute::OR(Instruction &inst) {
+bool Execute::OR() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -845,7 +1261,7 @@ bool Execute::OR(Instruction &inst) {
   return true;
 }
 
-bool Execute::AND(Instruction &inst) {
+bool Execute::AND() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -862,13 +1278,13 @@ bool Execute::AND(Instruction &inst) {
   return true;
 }
 
-bool Execute::FENCE(Instruction &inst) {
+bool Execute::FENCE() {
   log->SC_log(Log::INFO) << "FENCE" << endl;
 
   return true;
 }
 
-bool Execute::ECALL(Instruction &inst) {
+bool Execute::ECALL() {
 
   log->SC_log(Log::INFO) << "ECALL" << endl;
   std::cout << endl << "ECALL Instruction called, stopping simulation" << endl;
@@ -881,7 +1297,7 @@ bool Execute::ECALL(Instruction &inst) {
   return true;
 }
 
-bool Execute::EBREAK(Instruction &inst) {
+bool Execute::EBREAK() {
 
   log->SC_log(Log::INFO) << "EBREAK" << endl;
   std::cout << endl << "EBRAK  Instruction called, dumping information" << endl;
@@ -894,7 +1310,7 @@ bool Execute::EBREAK(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRW(Instruction &inst) {
+bool Execute::CSRRW() {
   int rd, rs1;
   int csr;
   uint32_t aux;
@@ -920,7 +1336,7 @@ bool Execute::CSRRW(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRS(Instruction &inst) {
+bool Execute::CSRRS() {
   int rd, rs1;
   int csr;
   uint32_t bitmask, aux, aux2;
@@ -951,7 +1367,7 @@ bool Execute::CSRRS(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRC(Instruction &inst) {
+bool Execute::CSRRC() {
   int rd, rs1;
   int csr;
   uint32_t bitmask, aux, aux2;
@@ -982,7 +1398,7 @@ bool Execute::CSRRC(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRWI(Instruction &inst) {
+bool Execute::CSRRWI() {
   int rd, rs1;
   int csr;
   uint32_t aux;
@@ -1007,7 +1423,7 @@ bool Execute::CSRRWI(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRSI(Instruction &inst) {
+bool Execute::CSRRSI() {
   int rd, rs1;
   int csr;
   uint32_t bitmask, aux;
@@ -1036,7 +1452,7 @@ bool Execute::CSRRSI(Instruction &inst) {
   return true;
 }
 
-bool Execute::CSRRCI(Instruction &inst) {
+bool Execute::CSRRCI() {
   int rd, rs1;
   int csr;
   uint32_t bitmask, aux;
@@ -1067,7 +1483,7 @@ bool Execute::CSRRCI(Instruction &inst) {
 
 /*********************** Privileged Instructions ******************************/
 
-bool Execute::MRET(Instruction &inst) {
+bool Execute::MRET() {
   uint32_t new_pc = 0;
 
   new_pc = regs->getCSR(CSR_MEPC);
@@ -1087,7 +1503,7 @@ bool Execute::MRET(Instruction &inst) {
   return true;
 }
 
-bool Execute::SRET(Instruction &inst) {
+bool Execute::SRET() {
   uint32_t new_pc = 0;
 
   new_pc = regs->getCSR(CSR_SEPC);
@@ -1098,13 +1514,13 @@ bool Execute::SRET(Instruction &inst) {
   return true;
 }
 
-bool Execute::WFI(Instruction &inst) {
+bool Execute::WFI() {
   log->SC_log(Log::INFO) << "WFI" << endl;
 
   return true;
 }
 
-bool Execute::SFENCE(Instruction &inst) {
+bool Execute::SFENCE() {
   log->SC_log(Log::INFO) << "SFENCE" << endl;
 
   return true;
@@ -1112,7 +1528,7 @@ bool Execute::SFENCE(Instruction &inst) {
 
 /**************************** C Instructions **********************************/
 
-bool Execute::C_JR(Instruction &inst) {
+bool Execute::C_JR() {
   uint32_t mem_addr = 0;
   int rs1;
   int new_pc;
@@ -1130,7 +1546,7 @@ bool Execute::C_JR(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_MV(Instruction &inst) {
+bool Execute::C_MV() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1151,7 +1567,7 @@ bool Execute::C_MV(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_ADD(Instruction &inst) {
+bool Execute::C_ADD() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1172,7 +1588,7 @@ bool Execute::C_ADD(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_LWSP(Instruction &inst) {
+bool Execute::C_LWSP() {
   uint32_t mem_addr = 0;
   int rd, rs1;
   int32_t imm = 0;
@@ -1198,7 +1614,7 @@ bool Execute::C_LWSP(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_ADDI4SPN(Instruction  &inst) {
+bool Execute::C_ADDI4SPN() {
   int rd, rs1;
   int32_t imm = 0;
   int32_t calc;
@@ -1225,7 +1641,7 @@ bool Execute::C_ADDI4SPN(Instruction  &inst) {
   return true;
 }
 
-bool Execute::C_ADDI16SP(Instruction &inst) {
+bool Execute::C_ADDI16SP() {
   // addi x2, x2, nzimm[9:4]
   int rd, rs1;
   int32_t imm = 0;
@@ -1257,7 +1673,7 @@ bool Execute::C_ADDI16SP(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_SWSP(Instruction &inst) {
+bool Execute::C_SWSP() {
   // sw rs2, offset(x2)
   uint32_t mem_addr = 0;
   int rs1, rs2;
@@ -1283,7 +1699,7 @@ bool Execute::C_SWSP(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_BEQZ(Instruction &inst) {
+bool Execute::C_BEQZ() {
   int rs1;
   int new_pc = 0;
   uint32_t val1;
@@ -1307,7 +1723,7 @@ bool Execute::C_BEQZ(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_BNEZ(Instruction &inst) {
+bool Execute::C_BNEZ() {
   int rs1;
   int new_pc = 0;
   uint32_t val1;
@@ -1331,7 +1747,7 @@ bool Execute::C_BNEZ(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_LI(Instruction &inst) {
+bool Execute::C_LI() {
   int rd, rs1;
   int32_t imm = 0;
   int32_t calc;
@@ -1352,7 +1768,7 @@ bool Execute::C_LI(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_SRLI(Instruction &inst) {
+bool Execute::C_SRLI() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -1375,7 +1791,7 @@ bool Execute::C_SRLI(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_SRAI(Instruction &inst) {
+bool Execute::C_SRAI() {
   int rd, rs1, rs2;
   uint32_t shift;
   int32_t calc;
@@ -1398,7 +1814,7 @@ bool Execute::C_SRAI(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_SLLI(Instruction &inst) {
+bool Execute::C_SLLI() {
   int rd, rs1, rs2;
   uint32_t shift;
   uint32_t calc;
@@ -1423,7 +1839,7 @@ bool Execute::C_SLLI(Instruction &inst) {
 }
 
 
-bool Execute::C_ANDI(Instruction &inst) {
+bool Execute::C_ANDI() {
   int rd, rs1;
   uint32_t imm;
   uint32_t aux;
@@ -1447,7 +1863,7 @@ bool Execute::C_ANDI(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_SUB(Instruction &inst) {
+bool Execute::C_SUB() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1472,7 +1888,7 @@ bool Execute::C_SUB(Instruction &inst) {
 }
 
 
-bool Execute::C_XOR(Instruction &inst) {
+bool Execute::C_XOR() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1493,7 +1909,7 @@ bool Execute::C_XOR(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_OR(Instruction &inst) {
+bool Execute::C_OR() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1514,7 +1930,7 @@ bool Execute::C_OR(Instruction &inst) {
   return true;
 }
 
-bool Execute::C_AND(Instruction &inst) {
+bool Execute::C_AND() {
   int rd, rs1, rs2;
   uint32_t calc;
 
@@ -1538,7 +1954,7 @@ bool Execute::C_AND(Instruction &inst) {
 /******************************************************************************/
 /* M  Extensions */
 /******************************************************************************/
-bool Execute::M_MUL(Instruction &inst) {
+bool Execute::M_MUL() {
   int rd, rs1, rs2;
   int32_t multiplier, multiplicand;
   int64_t result;
@@ -1562,7 +1978,7 @@ bool Execute::M_MUL(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_MULH(Instruction &inst) {
+bool Execute::M_MULH() {
   int rd, rs1, rs2;
   int32_t multiplier, multiplicand;
   int64_t result;
@@ -1588,7 +2004,7 @@ bool Execute::M_MULH(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_MULHSU(Instruction &inst) {
+bool Execute::M_MULHSU() {
   int rd, rs1, rs2;
   int32_t multiplier;
   uint32_t multiplicand;
@@ -1613,7 +2029,7 @@ bool Execute::M_MULHSU(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_MULHU(Instruction &inst) {
+bool Execute::M_MULHU() {
   int rd, rs1, rs2;
   uint32_t multiplier, multiplicand;
   uint64_t result;
@@ -1638,7 +2054,7 @@ bool Execute::M_MULHU(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_DIV(Instruction &inst) {
+bool Execute::M_DIV() {
   int rd, rs1, rs2;
   int32_t divisor, dividend;
   int64_t result;
@@ -1669,7 +2085,7 @@ bool Execute::M_DIV(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_DIVU(Instruction &inst) {
+bool Execute::M_DIVU() {
   int rd, rs1, rs2;
   uint32_t divisor, dividend;
   uint64_t result;
@@ -1698,7 +2114,7 @@ bool Execute::M_DIVU(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_REM(Instruction &inst) {
+bool Execute::M_REM() {
   int rd, rs1, rs2;
   int32_t divisor, dividend;
   int32_t result;
@@ -1728,7 +2144,7 @@ bool Execute::M_REM(Instruction &inst) {
   return true;
 }
 
-bool Execute::M_REMU(Instruction &inst) {
+bool Execute::M_REMU() {
   int rd, rs1, rs2;
   uint32_t divisor, dividend;
   uint32_t result;
@@ -1757,7 +2173,7 @@ bool Execute::M_REMU(Instruction &inst) {
 }
 
 
-bool Execute::A_LR(Instruction &inst) {
+bool Execute::A_LR() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1788,7 +2204,7 @@ bool Execute::A_LR(Instruction &inst) {
   return true;
 }
 
-bool Execute::A_SC(Instruction &inst) {
+bool Execute::A_SC() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1816,7 +2232,7 @@ bool Execute::A_SC(Instruction &inst) {
   return true;
 }
 
-bool Execute::A_AMOSWAP(Instruction &inst) {
+bool Execute::A_AMOSWAP() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1845,7 +2261,7 @@ bool Execute::A_AMOSWAP(Instruction &inst) {
   return true;
 }
 
-bool Execute::A_AMOADD(Instruction &inst)  {
+bool Execute::A_AMOADD()  {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1873,7 +2289,7 @@ bool Execute::A_AMOADD(Instruction &inst)  {
   return true;
 }
 
-bool Execute::A_AMOXOR(Instruction &inst)  {
+bool Execute::A_AMOXOR()  {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1900,7 +2316,7 @@ bool Execute::A_AMOXOR(Instruction &inst)  {
 
   return true;
 }
-bool Execute::A_AMOAND(Instruction &inst)  {
+bool Execute::A_AMOAND()  {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1927,7 +2343,7 @@ bool Execute::A_AMOAND(Instruction &inst)  {
 
   return true;
 }
-bool Execute::A_AMOOR(Instruction &inst) {
+bool Execute::A_AMOOR() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1953,7 +2369,7 @@ bool Execute::A_AMOOR(Instruction &inst) {
   log->SC_log(Log::INFO) << dec << "AMOOR " << endl;
   return true;
 }
-bool Execute::A_AMOMIN(Instruction &inst) {
+bool Execute::A_AMOMIN() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -1984,7 +2400,7 @@ bool Execute::A_AMOMIN(Instruction &inst) {
 
   return true;
 }
-bool Execute::A_AMOMAX(Instruction &inst) {
+bool Execute::A_AMOMAX() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -2015,7 +2431,7 @@ bool Execute::A_AMOMAX(Instruction &inst) {
 
   return true;
 }
-bool Execute::A_AMOMINU(Instruction &inst) {
+bool Execute::A_AMOMINU() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -2046,7 +2462,7 @@ bool Execute::A_AMOMINU(Instruction &inst) {
 
   return true;
 }
-bool Execute::A_AMOMAXU(Instruction &inst) {
+bool Execute::A_AMOMAXU() {
   uint32_t mem_addr = 0;
   int rd, rs1, rs2;
   uint32_t data;
@@ -2079,7 +2495,7 @@ bool Execute::A_AMOMAXU(Instruction &inst) {
 }
 
 
-bool Execute::NOP(Instruction &inst) {
+bool Execute::NOP() {
   cout << endl;
   regs->dump();
   cout << "Simulation time " << sc_time_stamp() << endl;

@@ -93,6 +93,14 @@ private:
 
   bool process_a_instruction(Instruction inst);
 
+  /**
+   * @brief shifts data forward at the end of the cycle
+   * @params  stage objects to interact with them
+   * @return  nothing
+   */
+
+  void forward_step(Fetch *Fetch, Execute *exec);
+
   void CPU_thread(void);
 
   /**

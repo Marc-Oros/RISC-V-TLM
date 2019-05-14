@@ -1,6 +1,10 @@
 #include "Instruction.h"
 
 
+Instruction::Instruction() {
+  m_instr = 0;
+}
+
 Instruction::Instruction(sc_uint<32> instr) {
   m_instr = instr;
 }

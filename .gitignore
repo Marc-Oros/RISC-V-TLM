@@ -41,3 +41,6 @@ dump
 
 #VSCode directory
 .vscode/
+
+#binary files directory
+bin/

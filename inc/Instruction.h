@@ -188,6 +188,7 @@ public:
    * @param instr Instruction to decode
    */
   Instruction(sc_uint<32> instr);
+  Instruction();
 
   /**
    * @brief Access to opcode field

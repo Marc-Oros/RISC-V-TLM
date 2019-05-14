@@ -81,7 +81,7 @@ bool CPU::cpu_process_IRQ() {
 
   return ret_value;
 }
-
+/*
 bool CPU::process_c_instruction(Instruction &inst) {
   bool PC_not_affected = true;
 
@@ -442,11 +442,35 @@ bool CPU::process_base_instruction(Instruction &inst) {
   }
 
   return PC_not_affected;
+}*/
+
+void CPU::forward_step(Fetch *fetch, Execute *exec)
+{
+  exec->setInstr(fetch->getInstr());
+  extension_t ext = fetch->getExt();
+  exec->setExt(ext);
+  switch(ext)
+  {
+    case BASE_EXTENSION:
+      exec->set_base_d(fetch->get_base_d());
+      break;
+    case C_EXTENSION:
+      exec->set_c_d(fetch->get_c_d());
+      break;
+    case M_EXTENSION:
+      exec->set_m_d(fetch->get_m_d());
+      break;
+    case A_EXTENSION:
+      exec->set_a_d(fetch->get_a_d());
+      break;
+    default:
+      std::cout << "Extension not implemented yet" << std::endl;
+  }
 }
 
 /**
  * main thread for CPU simulation
- * @brief CPU mai thread
+ * @brief CPU main thread
  */
 void CPU::CPU_thread(void) {
 
@@ -480,17 +504,17 @@ void CPU::CPU_thread(void) {
       } else {
         log->SC_log(Log::INFO) << "PC: 0x" << hex
               << register_bank->getPC() << ". ";*/
-      if ( fetch->run(register_bank) ) {
-        SC_REPORT_ERROR("CPU base", "Read memory");
-      } else {
-        log->SC_log(Log::INFO) << "PC: 0x" << hex
-              << register_bank->getPC() << ". ";
-
-        Instruction inst(fetch->getInstr());
-
+        fetch->run(register_bank, log);
+        //Si ha de canviar el PC, s'ha de buidar el pipeline
+        PC_not_affected = exec->run();
+        if(!PC_not_affected)
+        {
+          exec->NOP_toggle();
+        }
+        forward_step(fetch, exec);
         //Instruction inst(INSTR);
 
-        /* check what type of instruction is and execute it */
+        /* check what type of instruction is and execute it 
         switch(inst.check_extension()) {
           case BASE_EXTENSION:
             PC_not_affected = process_base_instruction(inst);
@@ -512,21 +536,21 @@ void CPU::CPU_thread(void) {
             std::cout << "Extension not implemented yet" << std::endl;
             inst.dump();
             exec->NOP(inst);
-          } // switch (inst.check_extension())
+          } // switch (inst.check_extension())*/
         }
 
         perf->instructionsInc();
 
-        if (PC_not_affected == true) {
+        /*if (PC_not_affected == true) {
           register_bank->incPC(incPCby2);
-        }
+        }*/
 
         /* Process IRQ (if any) */
         cpu_process_IRQ();
 
         /* Fixed instruction time to 10 ns (i.e. 100 MHz)*/
         sc_core::wait(10, SC_NS);
-  } // while(1)
+  //else } // while(1)
 } // CPU_thread
 
 
