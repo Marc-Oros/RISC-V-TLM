@@ -468,9 +468,10 @@ bool Execute::JAL(bool c_extension, int m_rd) {
     old_pc = regs->getPC();
     new_pc = old_pc + mem_addr;
 
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
 
-    old_pc = old_pc + 4;
+    //Innecessari per l'offset d'un cicle
+    //old_pc = old_pc + 4;
     regs->setValue(rd, old_pc);
   } else {
     C_Instruction c_inst(inst.getInstr());
@@ -480,10 +481,12 @@ bool Execute::JAL(bool c_extension, int m_rd) {
     old_pc = regs->getPC();
 
     new_pc = old_pc + mem_addr;
-    regs->setPC(new_pc);
-
+    //Offset de 2
+    regs->setPC(new_pc-2);
+    /* No necessari, ja fet al Fetch
     old_pc = old_pc + 2;
     regs->setValue(rd, old_pc);
+    */
   }
 
   log->SC_log(Log::INFO) << "JAL: x" << dec
@@ -505,7 +508,9 @@ bool Execute::JALR(bool c_extension) {
     mem_addr = inst.get_imm_I();
 
     old_pc = regs->getPC();
-    regs->setValue(rd, old_pc + 4);
+    //+4 ja fet pel fetch anterior
+    //regs->setValue(rd, old_pc + 4);
+    regs->setValue(rd, old_pc);
 
     new_pc = (regs->getValue(rs1) + mem_addr) & 0xFFFFFFFE;
     regs->setPC(new_pc);
@@ -521,7 +526,9 @@ bool Execute::JALR(bool c_extension) {
     rs1 = c_inst.get_rs1();
 
     old_pc = regs->getPC();
-    regs->setValue(rd, old_pc + 2);
+    //No cal ajustar + 2, ja fet
+    //regs->setValue(rd, old_pc + 2);
+    regs->setValue(rd, old_pc);
 
     new_pc = (regs->getValue(rs1) + mem_addr) & 0xFFFFFFFE;
     regs->setPC(new_pc);
@@ -543,10 +550,12 @@ bool Execute::BEQ() {
 
   if (regs->getValue(rs1) == regs->getValue(rs2)) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari
     regs->incPC();
     new_pc = regs->getPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "BEQ x" << dec
@@ -570,10 +579,12 @@ bool Execute::BNE() {
 
   if (val1 != val2) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc-6);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari ja que ja tenim la instruccio
     regs->incPC();
-    new_pc = regs->getPC();
+    new_pc = regs->getPC();    
+    */
   }
 
   log->SC_log(Log::INFO) << "BNE: x" << dec
@@ -593,9 +604,11 @@ bool Execute::BLT() {
 
   if ((int32_t)regs->getValue(rs1) < (int32_t)regs->getValue(rs2)) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari
     regs->incPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "BLT x" << dec
@@ -615,9 +628,11 @@ bool Execute::BGE() {
 
   if ((int32_t)regs->getValue(rs1) >= (int32_t)regs->getValue(rs2)) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari
     regs->incPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "BGE x" << dec
@@ -637,10 +652,12 @@ bool Execute::BLTU() {
 
   if ((uint32_t) regs->getValue(rs1) < (uint32_t) regs->getValue(rs2)) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari
     regs->incPC();
     new_pc = regs->getPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "BLTU x" << dec
@@ -660,9 +677,11 @@ bool Execute::BGEU() {
 
   if ((uint32_t) regs->getValue(rs1) >= (uint32_t) regs->getValue(rs2)) {
     new_pc = regs->getPC() + inst.get_imm_B();
-    regs->setPC(new_pc);
+    regs->setPC(new_pc-4);
   } else {
+    /* No necessari
     regs->incPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "BGEU x" << dec
@@ -1710,10 +1729,13 @@ bool Execute::C_BEQZ() {
 
   if (val1 == 0) {
     new_pc = regs->getPC() + c_inst.get_imm_CB();
-    regs->setPC(new_pc);
+    //Offset de -2 (Comprimit)
+    regs->setPC(new_pc-2);
   } else {
+    /* No necessari, ja s'ha fet abans
     regs->incPC(true); //PC <- PC + 2
     new_pc = regs->getPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "C.BEQZ: x" << dec
@@ -1734,10 +1756,13 @@ bool Execute::C_BNEZ() {
 
   if (val1 != 0) {
     new_pc = regs->getPC() + c_inst.get_imm_CB();
-    regs->setPC(new_pc);
+    //Offset de -2 (Comprimit)
+    regs->setPC(new_pc-2);
   } else {
+    /* No necessari
     regs->incPC(true); //PC <- PC +2
     new_pc = regs->getPC();
+    */
   }
 
   log->SC_log(Log::INFO) << "C.BNEZ: x" << dec

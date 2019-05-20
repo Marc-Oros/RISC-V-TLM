@@ -65,15 +65,24 @@ void Registers::dump(void) {
 
 void Registers::setValue(int reg_num, int32_t value) {
   if ((reg_num != 0) && (reg_num < 32)) {
-   register_bank[reg_num] = value;
+   reg_status_new[reg_num]++;
+   buffer_new = value;
+   //register_bank[reg_num] = value;
    perf->registerWrite();
   }
 }
 
 int32_t Registers::getValue(int reg_num) {
   if ((reg_num >= 0) && (reg_num < 32)){
+    if (reg_status[reg_num] == 0)
+    {
     perf->registerRead();
     return register_bank[reg_num];
+    } else {
+      //Seria correcte?
+      perf->registerRead();
+      return buffer;
+    }
   } else {
     return 0xFFFFFFFF;
   }
@@ -121,6 +130,28 @@ void Registers::setCSR(int csr, uint32_t value) {
    */
   if (csr != CSR_MISA) {
     CSR[csr] = value;
+  }
+}
+
+void Registers::writeBack()
+{
+  for(int i=0; i<32; i++)
+  {
+    if(reg_status[i] != 0)
+    {
+      reg_status[i]--;
+      reg_status_new[i] = reg_status[i];
+      register_bank[i] = buffer;
+    }
+  }
+  buffer = buffer_new;
+}
+
+void Registers::forward()
+{
+  for(int i=0; i<32; i++)
+  {
+    reg_status[i] = reg_status_new[i];
   }
 }
 

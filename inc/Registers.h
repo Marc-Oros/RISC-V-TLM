@@ -236,6 +236,18 @@ public:
   void setCSR(int csr, uint32_t value);
 
   /**
+   * Register Write-Back, writes data from last buffer to the correct registers
+   */
+
+  void writeBack();
+
+  /**
+   * Forwards register_status
+   */
+  
+  void forward();
+
+  /**
    * Dump register data to console
    */
   void dump();
@@ -244,6 +256,20 @@ private:
    * bank of registers (32 regs of 32bits each)
    */
   int32_t register_bank[32];
+
+  /**
+   * Register status file (Needs to be written or not)
+   * Needs to be duplicate or implemented differently
+   */
+  uint8_t reg_status[32];
+  uint8_t reg_status_new[32];
+
+  /**
+   * Buffers for data that needs to be written, one for data generated this
+   * cycle and one for data from the previous cycle (32 bits)
+   */
+  int32_t buffer = 0;
+  int32_t buffer_new = 0;
 
   /**
    * Program counter (32 bits width)

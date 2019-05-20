@@ -89,8 +89,9 @@ bool Fetch::run(Registers *register_bank, Log *log)
             inst.dump();
             //exec->NOP(inst);
           }
-        register_bank->incPC(incPCby2);
-        return trans->is_response_error();
+        //register_bank->incPC(incPCby2);
+        //return trans->is_response_error();
+        return incPCby2;
       }
 }
 

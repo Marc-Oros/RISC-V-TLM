@@ -99,7 +99,7 @@ private:
    * @return  nothing
    */
 
-  void forward_step(Fetch *Fetch, Execute *exec);
+  void forward_step(Fetch *Fetch, Execute *exec, Registers *register_bank, bool incPCby2, bool PC_not_affected);
 
   void CPU_thread(void);
 
