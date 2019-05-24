@@ -13,7 +13,8 @@ CPU::CPU(sc_module_name name, uint32_t PC): sc_module(name)
    register_bank->setPC(PC);
 
    //register_bank->setValue(Registers::sp, (0xD0000 / 4) - 1);
-   register_bank->setValue(Registers::sp, (0x10000000 / 4) - 1);
+   register_bank->setSP((0x10000000 / 4) - 1);
+   //register_bank->setValue(Registers::sp, (0x10000000 / 4) - 1);
 
    irq_line_socket.register_b_transport(this, &CPU::call_interrupt);
    interrupt = false;
@@ -126,68 +127,25 @@ void CPU::CPU_thread(void) {
   register_bank->forward();
   register_bank->writeBack();
 
-  while(1) {
-      /* Get new PC value */
-      //cout << "CPU: PC 0x" << hex << (uint32_t) register_bank->getPC() << endl;
+  while(1) 
+  {
+    incPCby2 = fetch->run(register_bank, log, perf);
+    //Si ha de canviar el PC, s'ha de buidar el pipeline
+    PC_not_affected = exec->run();
+    if(!PC_not_affected)
+    {
+      exec->NOP_toggle();
+    }
+    register_bank->writeBack();
 
-      /*trans->set_address( register_bank->getPC() );
-      instr_bus->b_transport( *trans, delay);*/
+    /* Process IRQ (if any) */
+    cpu_process_IRQ();
 
-      perf->codeMemoryRead();
+    forward_step(fetch, exec, register_bank, incPCby2, PC_not_affected);
 
-      /*if ( trans->is_response_error() ) {
-        SC_REPORT_ERROR("CPU base", "Read memory");
-      } else {
-        log->SC_log(Log::INFO) << "PC: 0x" << hex
-              << register_bank->getPC() << ". ";*/
-        incPCby2 = fetch->run(register_bank, log);
-        //Si ha de canviar el PC, s'ha de buidar el pipeline
-        PC_not_affected = exec->run();
-        if(!PC_not_affected)
-        {
-          exec->NOP_toggle();
-        }
-        register_bank->writeBack();
-        forward_step(fetch, exec, register_bank, incPCby2, PC_not_affected);
-        //Instruction inst(INSTR);
-
-        /* check what type of instruction is and execute it 
-        switch(inst.check_extension()) {
-          case BASE_EXTENSION:
-            PC_not_affected = process_base_instruction(inst);
-            incPCby2 = false;
-            break;
-          case C_EXTENSION:
-            PC_not_affected = process_c_instruction(inst);
-            incPCby2 = true;
-            break;
-          case M_EXTENSION:
-            PC_not_affected = process_m_instruction(inst);
-            incPCby2 = false;
-            break;
-          case A_EXTENSION:
-            PC_not_affected = process_a_instruction(inst);
-            incPCby2 = false;
-            break;
-          default:
-            std::cout << "Extension not implemented yet" << std::endl;
-            inst.dump();
-            exec->NOP(inst);
-          } // switch (inst.check_extension())*/
-        }
-
-        perf->instructionsInc();
-
-        /*if (PC_not_affected == true) {
-          register_bank->incPC(incPCby2);
-        }*/
-
-        /* Process IRQ (if any) */
-        cpu_process_IRQ();
-
-        /* Fixed instruction time to 10 ns (i.e. 100 MHz)*/
-        sc_core::wait(10, SC_NS);
-  //else } // while(1)
+    /* Fixed instruction time to 10 ns (i.e. 100 MHz)*/
+    sc_core::wait(10, SC_NS);
+  }    
 } // CPU_thread
 
 

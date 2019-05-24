@@ -48,6 +48,7 @@ bool Execute::run()
     //Hi ha hagut un salt, no cal executar
     NOP_toggle();
   }else{
+    perf->instructionsInc();
     switch(extension) {
       case BASE_EXTENSION:
         PC_not_affected = process_base_instruction();

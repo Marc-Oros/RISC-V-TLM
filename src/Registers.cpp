@@ -72,6 +72,11 @@ void Registers::setValue(int reg_num, int32_t value) {
   }
 }
 
+void Registers::setSP(int32_t value) {
+  register_bank[2] = value;
+  perf->registerWrite();
+}
+
 int32_t Registers::getValue(int reg_num) {
   if ((reg_num >= 0) && (reg_num < 32)){
     if (reg_status[reg_num] == 0)

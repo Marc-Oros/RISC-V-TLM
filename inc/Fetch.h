@@ -42,7 +42,7 @@ class Fetch: sc_module {
 
     op_A_Codes decode_a_instruction(Instruction inst);
 
-    bool run(Registers *bank, Log *log);
+    bool run(Registers *bank, Log *log, Performance *perf);
 
     Instruction getInstr();
     extension_t getExt();

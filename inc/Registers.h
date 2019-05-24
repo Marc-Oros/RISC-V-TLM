@@ -234,6 +234,12 @@ public:
    * @param value new value to register
    */
   void setCSR(int csr, uint32_t value);
+  /**
+   * @brief Set CSR value
+   * @param csr   CSR number to access
+   * @param value new value to register
+   */
+  void setSP(int32_t value);
 
   /**
    * Register Write-Back, writes data from last buffer to the correct registers

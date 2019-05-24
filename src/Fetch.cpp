@@ -35,7 +35,7 @@ opCodes Fetch::decode_base_instruction(Instruction &inst) {
   return inst.decode();
 }
 
-bool Fetch::run(Registers *register_bank, Log *log)
+bool Fetch::run(Registers *register_bank, Log *log, Performance *perf)
 {
     tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
     sc_time delay = SC_ZERO_TIME;
@@ -59,7 +59,7 @@ bool Fetch::run(Registers *register_bank, Log *log)
       } else {
         log->SC_log(Log::INFO) << "PC: 0x" << hex
               << register_bank->getPC() << ". ";
-
+        perf->codeMemoryRead();
         //Com generar una instruccio nova amb mem estatica?
         Instruction tmp(INSTR);
         inst = tmp;
