@@ -82,6 +82,13 @@ public:
   }
 
   /**
+   * @brief Increment instructions executed counter
+   */
+  inline void cyclesInc() {
+    cycles_completed++;
+  }
+
+  /**
    * @brief Dump counters to cout
    */
   void dump();
@@ -97,6 +104,7 @@ private:
   uint64_t register_read;
   uint64_t register_write;
   uint64_t instructions_executed;
+  uint64_t cycles_completed;
 };
 
 #endif

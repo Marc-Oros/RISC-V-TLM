@@ -175,6 +175,7 @@ public:
   bool A_AMOMAXU();
 
   bool NOP();
+  bool getNOP();
 
 private:
   uint32_t readDataMem(uint32_t addr, int size);

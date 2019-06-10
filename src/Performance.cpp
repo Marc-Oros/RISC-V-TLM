@@ -19,6 +19,7 @@ Performance::Performance()
     register_read = 0;
     register_write = 0;
     instructions_executed = 0;
+    cycles_completed = 0;
 }
 
 void Performance::dump() {
@@ -29,6 +30,7 @@ void Performance::dump() {
   cout << "# registers read: "     << register_read << endl;
   cout << "# registers write: "    << register_write << endl;
   cout << "# instructions executed: " << instructions_executed <<  endl;
+  cout << "# cycles completed: " << cycles_completed << endl;
 }
 
 Performance* Performance::instance = 0;

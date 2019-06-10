@@ -145,11 +145,10 @@ void Registers::writeBack()
     if(reg_status[i] != 0)
     {
       reg_status[i]--;
-      reg_status_new[i] = reg_status[i];
+      reg_status_new[i]--;
       register_bank[i] = buffer;
     }
   }
-  buffer = buffer_new;
 }
 
 void Registers::forward()
@@ -158,6 +157,7 @@ void Registers::forward()
   {
     reg_status[i] = reg_status_new[i];
   }
+  buffer = buffer_new;
 }
 
 void Registers::initCSR() {

@@ -235,9 +235,8 @@ public:
    */
   void setCSR(int csr, uint32_t value);
   /**
-   * @brief Set CSR value
-   * @param csr   CSR number to access
-   * @param value new value to register
+   * @brief Set SP value (used for initialization)
+   * @param value new value for the Stack Pointer 
    */
   void setSP(int32_t value);
 

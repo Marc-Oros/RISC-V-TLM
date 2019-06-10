@@ -15,6 +15,11 @@ void Execute::NOP_toggle()
   stage_NOP = (stage_NOP+1) % 2;
 }
 
+bool Execute::getNOP()
+{
+  return stage_NOP;
+}
+
 void Execute::setInstr(Instruction p_inst)
 {
   inst = p_inst;
@@ -449,7 +454,7 @@ bool Execute::AUIPC() {
   imm = inst.get_imm_U() << 12;
   new_pc = regs->getPC() + imm;
 
-  regs->setValue(rd, new_pc);
+  regs->setValue(rd, new_pc-4);
 
   log->SC_log(Log::INFO) << "AUIPC x" << dec
           << rd << " <- 0x" << hex << imm << " + PC (0x"

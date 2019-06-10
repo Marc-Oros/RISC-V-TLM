@@ -109,6 +109,7 @@ void CPU::forward_step(Fetch *fetch, Execute *exec, Registers *register_bank, bo
     default:
       std::cout << "Extension not implemented yet" << std::endl;
   }
+  register_bank->writeBack();
   register_bank->forward();
 }
 
@@ -123,20 +124,16 @@ void CPU::CPU_thread(void) {
   sc_time delay = SC_ZERO_TIME;*/
   bool PC_not_affected = false;
   bool incPCby2 = false;
-  //One forward-writeBack cycle because a register is written before we get here
-  register_bank->forward();
-  register_bank->writeBack();
-
   while(1) 
   {
-    incPCby2 = fetch->run(register_bank, log, perf);
+    perf->cyclesInc();
+    incPCby2 = fetch->run(register_bank, log, perf, exec->getNOP());
     //Si ha de canviar el PC, s'ha de buidar el pipeline
     PC_not_affected = exec->run();
     if(!PC_not_affected)
     {
       exec->NOP_toggle();
     }
-    register_bank->writeBack();
 
     /* Process IRQ (if any) */
     cpu_process_IRQ();
