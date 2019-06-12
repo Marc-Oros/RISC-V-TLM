@@ -141,7 +141,7 @@ void CPU::CPU_thread(void) {
     forward_step(fetch, exec, register_bank, incPCby2, PC_not_affected);
 
     /* Fixed instruction time to 10 ns (i.e. 100 MHz)*/
-    sc_core::wait(10, SC_NS);
+    sc_core::wait(4, SC_NS);
   }    
 } // CPU_thread
 

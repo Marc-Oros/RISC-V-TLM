@@ -23,14 +23,15 @@ Performance::Performance()
 }
 
 void Performance::dump() {
-  cout << dec << "# data memory reads: "  << data_memory_read << endl;
-  cout << "# data memory writes: " << data_memory_write << endl;
+  cout << dec << "# data memory reads (not implemented): "  << data_memory_read << endl;
+  cout << "# data memory writes (not implemented): " << data_memory_write << endl;
   cout << "# code memory reads: "  << code_memory_read << endl;
   cout << "# code memory writes: " << code_memory_write << endl;
   cout << "# registers read: "     << register_read << endl;
   cout << "# registers write: "    << register_write << endl;
   cout << "# instructions executed: " << instructions_executed <<  endl;
   cout << "# cycles completed: " << cycles_completed << endl;
+  cout << "Calculated IPC: " << float(instructions_executed/float(cycles_completed)) << endl;
 }
 
 Performance* Performance::instance = 0;
