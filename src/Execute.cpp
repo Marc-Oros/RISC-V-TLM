@@ -15,11 +15,6 @@ void Execute::NOP_toggle()
   stage_NOP = (stage_NOP+1) % 2;
 }
 
-bool Execute::getNOP()
-{
-  return stage_NOP;
-}
-
 void Execute::setInstr(Instruction p_inst)
 {
   inst = p_inst;
@@ -50,9 +45,11 @@ bool Execute::run()
   bool PC_not_affected = true;
   if(stage_NOP)
   {
-    //Hi ha hagut un salt, no cal executar
+    //If we execute a jump, the next instruction we would execute is incorrect, so we do nothing
     NOP_toggle();
   }else{
+    log->SC_log(Log::INFO) << "PC: 0x" << hex
+              << regs->getPC() << ". ";
     perf->instructionsInc();
     switch(extension) {
       case BASE_EXTENSION:

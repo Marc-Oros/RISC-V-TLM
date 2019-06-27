@@ -127,7 +127,7 @@ void CPU::CPU_thread(void) {
   while(1) 
   {
     perf->cyclesInc();
-    incPCby2 = fetch->run(register_bank, log, perf, exec->getNOP());
+    incPCby2 = fetch->run(register_bank, log, perf);
     //Si ha de canviar el PC, s'ha de buidar el pipeline
     PC_not_affected = exec->run();
     if(!PC_not_affected)
@@ -140,7 +140,7 @@ void CPU::CPU_thread(void) {
 
     forward_step(fetch, exec, register_bank, incPCby2, PC_not_affected);
 
-    /* Fixed instruction time to 10 ns (i.e. 100 MHz)*/
+    /* Fixed instruction time to 4 ns (i.e. 250 MHz)*/
     sc_core::wait(4, SC_NS);
   }    
 } // CPU_thread
